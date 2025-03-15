@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+venv
+
+models/__pycache__
+
+schemas/__pycache__
