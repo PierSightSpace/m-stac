@@ -1,20 +1,26 @@
+# Imports
+# Standard Library Imports
+from datetime import datetime
+
+# Third-Party Imports
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from schemas import user as user_schema
-from sqlalchemy.future import select
-from database import engine, get_db
-from utils import hash_pass, verify_password, schedule_key_rotation, get_secret_key_csrf
-from auth import create_access_token
-from models import user as model
-from datetime import datetime
-import threading
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+import threading
 from pydantic import BaseModel
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
+
+# Local Imports
+from database import engine, get_db
+from schemas import user as user_schema
+from utils import hash_pass, verify_password, schedule_key_rotation, get_secret_key_csrf
+from auth import create_access_token
+from models import user as model
 
 
 rotation_thread = None
@@ -23,6 +29,11 @@ stop_rotation = threading.Event()
 
 @asynccontextmanager
 async def  lifespan(app: FastAPI):
+    '''
+    Handles startup and shutdown events:
+    - Initializes the database schema
+    - Starts a thread for periodic security key rotation for csrf protection
+    '''
     global rotation_thread
     async with engine.begin() as conn:
         await conn.run_sync(model.Base.metadata.create_all)
@@ -31,22 +42,21 @@ async def  lifespan(app: FastAPI):
     rotation_thread = threading.Thread(target=schedule_key_rotation)
     rotation_thread.daemon = True
     rotation_thread.start()
-    
     yield
-    
-    stop_rotation.set()
-    if rotation_thread:
-        rotation_thread.join()
         
-    await engine.dispose()
-        
+
 app = FastAPI(lifespan=lifespan)
 
-
+############################################################################################################
+# Middlewares
+############################################################################################################
 # app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
 
     
+############################################################################################################
+# CSRF Protection Settings
+############################################################################################################
 class CsrfSettings(BaseModel):
     secret_key: str = get_secret_key_csrf()
     cookie_samesite: str = "none"
@@ -61,6 +71,9 @@ def get_csrf_config():
     return CsrfSettings()
 
 
+############################################################################################################
+# API End-Points
+############################################################################################################
 @app.get("/csrftoken")
 async def get_csrf_token(
     csrf_protect:CsrfProtect = Depends()
@@ -77,6 +90,7 @@ async def create_users(
     db:AsyncSession = Depends(get_db),
     csrf_protect:CsrfProtect = Depends()
 ):
+    '''Creates a new user and saves in the table.'''
     existing_user = await db.execute(
         model.User.__table__.select().where(model.User.email==user.email)
     )
@@ -106,6 +120,7 @@ async def login(
     db: AsyncSession = Depends(get_db),
     csrf_protect:CsrfProtect = Depends()
 ):
+    '''Authenticates the user and returns the JWT token'''
     user = await db.execute(
         select(model.User).where(model.User.email==user_login_details.email)
     )
@@ -126,6 +141,8 @@ async def login(
     access_token = create_access_token(data={"user_id": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
     
+    
 @app.exception_handler(CsrfProtectError)
 def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
+  '''Handles CSRF protection errors'''
   return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})

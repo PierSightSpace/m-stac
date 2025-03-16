@@ -1,7 +1,15 @@
-from pydantic import BaseModel, HttpUrl
-from typing import Optional, List
-from datetime import datetime, date
+# Imports
+# Standard Library Imports
+from typing import Optional
+from datetime import datetime
 
+# Third-Party Imports
+from pydantic import BaseModel
+
+
+############################################################################################################
+# LogEntry Schemas
+############################################################################################################
 class LogEntry(BaseModel):
     path: str
     method: str

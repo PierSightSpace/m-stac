@@ -1,7 +1,15 @@
-from pydantic import BaseModel, HttpUrl
+# Imports
+# Standard Library Imports
 from typing import Optional, List
 from datetime import datetime, date
 
+# Third-Party Imports
+from pydantic import BaseModel, HttpUrl
+
+
+############################################################################################################
+# Stac Schemas
+############################################################################################################
 class Geometry(BaseModel):
     coordinates: list
     
