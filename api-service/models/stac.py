@@ -1,7 +1,12 @@
+# Imports
+# Third-Party Imports
 from sqlalchemy import Column, Integer, Float, String, BigInteger, Date, DateTime, Text
 from geoalchemy2 import Geometry
 from database import Base
 
+############################################################################################################
+# Stac Model
+############################################################################################################
 class Stac(Base):
     __tablename__ = 'stac'
     __table_args__ = {'schema': 'stac_metadata'}

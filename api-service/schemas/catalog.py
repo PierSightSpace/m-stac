@@ -1,6 +1,14 @@
-from pydantic import BaseModel, HttpUrl
+# Imports
+# Standard Library Imports
 from typing import Optional, List, Literal
 
+# Third-Party Imports
+from pydantic import BaseModel, HttpUrl
+
+
+############################################################################################################
+# Cataog Schemas
+############################################################################################################
 class Links(BaseModel):
     rel: str
     mime_type: Literal["application/json", "application/geo+json", "application/vnd.oai.openapi+json;version=3.0", "text/html"]
