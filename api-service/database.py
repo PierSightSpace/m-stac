@@ -21,7 +21,7 @@ DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 
 
-DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:Niral0%261%403@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 
 engine = create_async_engine(DATABASE_URL)

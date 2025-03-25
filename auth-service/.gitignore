@@ -1,5 +1,4 @@
 __pycache__
 venv
 *.pyc
-private_key.pem
-public_key.pem
+.venv

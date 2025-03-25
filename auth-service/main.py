@@ -28,7 +28,7 @@ stop_rotation = threading.Event()
 
 
 @asynccontextmanager
-async def  lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):
     '''
     Handles startup and shutdown events:
     - Initializes the database schema
@@ -50,7 +50,7 @@ app = FastAPI(lifespan=lifespan)
 ############################################################################################################
 # Middlewares
 ############################################################################################################
-# app.add_middleware(HTTPSRedirectMiddleware)
+app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
 
     

@@ -5,3 +5,5 @@ venv
 models/__pycache__
 
 schemas/__pycache__
+
+.venv
