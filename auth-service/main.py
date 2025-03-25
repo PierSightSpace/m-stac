@@ -51,7 +51,7 @@ app = FastAPI(lifespan=lifespan)
 # Middlewares
 ############################################################################################################
 app.add_middleware(HTTPSRedirectMiddleware)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["m-stac.onrender.com", "127.0.0.1"])
 
     
 ############################################################################################################
