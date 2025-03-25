@@ -1,3 +1,17 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10
 
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+
+ENV PORT=8001
+ENV DB_NAME='piersight_stac'
+ENV DB_USER='piersight_stac_user'
+ENV DB_PASSWORD='on7XSwsmuG1KflPoeGfYJuVIeVOQF0p6'
+ENV DB_HOST='dpg-cvh6ocjv2p9s7382kdjg-a'
+ENV DB_PORT='5432'
+ENV ECDSA_PUBLIC_KEY='LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0NCk1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERB \
+UWNEUWdBRUFEc3hwT2ZqRU8va2gwMURSWE85TTdYKzZVNGsNCm9YY3ljQ1VaaW5mZEE1Yk1NWVJV \
+UUVkMDl3ZmVwUGZrNDZxQmFralJOQ3RXS2pZN1ZWYXhsd0pHTXc9PQ0KLS0tLS1FTkQgUFVCTElD \
+IEtFWS0tLS0tDQo='
