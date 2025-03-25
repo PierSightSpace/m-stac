@@ -45,7 +45,7 @@ class LoggMiddleware(BaseHTTPMiddleware):
             res_body_str = None
         
         log_entry = {
-            "path": request.url.path,
+            "path": str(request.url),
             "method": request.method,
             "request_body": req_body_str,
             "response_body": res_body_str,

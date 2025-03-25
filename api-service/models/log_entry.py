@@ -12,10 +12,10 @@ class LogEntry(Base):
     __table_args__ = {'schema': 'stac_metadata'}
     
     id = Column(Integer, primary_key=True, index=True)
-    path = Column(String(50), nullable=False)
+    path = Column(String(256), nullable=False)
     method = Column(String(10), nullable=False)
     request_body = Column(String(100), nullable=True)
-    response_body = Column(String(255), nullable=True)
+    response_body = Column(String(256), nullable=True)
     process_time = Column(Float, nullable=True)
     timestamp = Column(DateTime(timezone=True), nullable=True)
     
