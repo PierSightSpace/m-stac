@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Third-Party Imports
 from sqlalchemy import Column, Integer, String, DateTime
-from database import Base
+from database.postgre import Base
 from sqlalchemy_utils import EmailType
 
 

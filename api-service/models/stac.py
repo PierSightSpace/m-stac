@@ -2,7 +2,7 @@
 # Third-Party Imports
 from sqlalchemy import Column, Integer, Float, String, BigInteger, Date, DateTime, Text
 from geoalchemy2 import Geometry
-from database import Base
+from database.postgre import Base
 
 ############################################################################################################
 # Stac Model

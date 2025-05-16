@@ -132,6 +132,7 @@ async def login(
             detail="Incorrect email or password"
         )
     
+    
     if not verify_password(user_login_details.password, user.password):
         raise HTTPException(
             status_code=401,

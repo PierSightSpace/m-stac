@@ -10,7 +10,6 @@ from sqlalchemy.orm import sessionmaker
 # Local Imports
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 

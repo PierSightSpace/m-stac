@@ -15,7 +15,7 @@ from jose import JWTError, jwt
 
 # Local Imports
 from dotenv import load_dotenv
-from database import get_db
+from database.postgre import get_db
 from models.user import User
 
 

@@ -1,7 +1,7 @@
 # Imports
 # Third-Party Imports
 from sqlalchemy import Column, Integer, Float, String, DateTime
-from database import Base
+from database.postgre import Base
 
 
 ############################################################################################################
