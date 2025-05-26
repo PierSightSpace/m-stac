@@ -36,7 +36,16 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Coroutine[Any, Any, JSONResponse]],
     ):
-        '''Verifies the user's JWT token against the requests'''
+        """
+        Verifies the user's JWT token against the request headers and checks if the user is regestered in the database.
+        
+        Args: 
+            request: Request Object containing the HTTP request data.
+            call_next: Callable function to process the request and return a response.
+
+        Returns:
+            JSONResponse: Returns a JSON resposne with status code and detail message if the user is authorized or not.
+        """
         try:
             if "Authorization" not in request.headers:
                 return JSONResponse(status_code=401, content={"detail": "Unauthorized! No token provided"})
@@ -61,7 +70,19 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         token,
         db:AsyncSession        
     ):
-        '''Decode the provided JWT token using the PUBLIC_KEY and check whether the user is registered or not'''
+        """
+        Decodes the provided JWT token using the PUBLIC_KEY and check whether the token is valid or not.
+        
+        Args: 
+            token: JWT token to be verified
+            db: Postgre dataabse session to query the user information.
+
+        Raises:
+            HTTPException: Raises an HTTPException with status code 401 if the token or user data is not handles correctly.
+        
+        Returns:
+            bool: Returns True if the token is valid and the token is associated with that user.
+        """
         try:
             payload = jwt.decode(token, PUBLIC_KEY, algorithms=JWT_ALGORITHM, audience="api-service")
             print(payload)

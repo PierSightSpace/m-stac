@@ -55,6 +55,15 @@ OFFSET = 0
 # Utility Functions
 ############################################################################################################
 def extract_geometry_coords(geometry_data):
+    """
+    Extracts the coordinates from a geometry object.
+
+    Parameters:
+        geometry_data: The geometry data to extract coordinates from.
+
+    Returns:
+        The coordinates extracted from the geometry.
+    """
     stac_geojson_str = to_geojson(geometry_data, indent=2)
     stac_geojson = json.loads(stac_geojson_str)
     geom_coords = stac_geojson["coordinates"]
@@ -62,6 +71,15 @@ def extract_geometry_coords(geometry_data):
 
 
 def build_products(stac_obj) -> stac.StacBase:
+    """
+    Builds a STAC product object from the provided data.
+
+    Parameters:
+        stac_obj: The source object containing STAC item data.
+
+    Returns:
+        A STAC product object with all relevant fields populated.
+    """
     geom_coords = extract_geometry_coords(stac_obj["geometry"])
     geom_obj = stac.Geometry(coordinates=geom_coords)
     return stac.StacBase(
@@ -99,8 +117,15 @@ def build_products(stac_obj) -> stac.StacBase:
 
 def serialize_rows(dataframe):
     """
-    Serialize a list of tuples (rows) to a JSON-serializable list of dicts.
-    Converts bytes fields to hex strings.
+    Serializes a DataFrame of records to a list of dictionaries.
+
+    Converts geometry fields to GeoJSON and replaces any NaN values with None.
+
+    Parameters:
+        dataframe: The DataFrame containing the records to serialize.
+
+    Returns:
+        A list of dictionaries representing the serialized records.
     """
     dataframe['geometry'] = dataframe['geometry_coordinates'].apply(lambda x: wkb.loads(x) if x else None)
     gdf = gpd.GeoDataFrame(dataframe, geometry='geometry', crs='EPSG:4326')
@@ -115,7 +140,13 @@ def serialize_rows(dataframe):
         
 def validate_coordinates(coordinates: Optional[str]):
     """
-    Validates whether the goemetry or its type is valid or not
+    Validates that the provided coordinates are in a valid WKT format.
+
+    Parameters:
+        coordinates: The geometry coordinates to validate.
+
+    Raises:
+        HTTPException: If the coordinates are not valid WKT.
     """
     if coordinates is not None:
         try: 
@@ -125,6 +156,16 @@ def validate_coordinates(coordinates: Optional[str]):
                     
 
 def validate_time(time: Optional[str], field_name):
+    """
+    Validates that the provided time string is in ISO 8601 format.
+
+    Parameters:
+        time: The time string to validate.
+        field_name: The name of the field being validated (for error messages).
+
+    Raises:
+        HTTPException: If the time string is not in ISO 8601 format.
+    """
     if time is not None:
         try:
             if time.endswith('Z'):
@@ -135,6 +176,17 @@ def validate_time(time: Optional[str], field_name):
         
 
 def validate_inputs(coordinates, start_time, stop_time):
+    """
+    Validates the input parameters for coordinates and time filters.
+
+    Parameters:
+        coordinates: The geometry coordinates to validate.
+        start_time: The start time string to validate.
+        stop_time: The stop time string to validate.
+
+    Raises:
+        HTTPException: If any input is invalid.
+    """
     validate_coordinates(coordinates)
     validate_time(start_time, field_name="start_time")
     validate_time(stop_time, field_name="stop_time")
@@ -143,7 +195,12 @@ def validate_inputs(coordinates, start_time, stop_time):
 ############################################################################################################
 @app.get("/eodata/v1/catalog", response_model=catalog.CatalogBase)
 async def get_piersight_catalog():
-    '''Catalog of the PierSight'''
+    """
+    Returns the PierSight catalog metadata.
+
+    Returns:
+        A dictionary containing the catalog metadata.
+    """
     catalog_result = {
         "type": "Catalog",
         "id": "PierSight Space Maritime Servilliance Data",
@@ -165,7 +222,24 @@ async def get_all_stacs(
     limit: Optional[int] = Query(LIMIT, ge=1, le=100),
     offset: Optional[int] = Query(OFFSET, ge=0)
 ):
-    '''Retrives all the stac from the database'''    
+    """
+    Retrieves all STAC items from the database.
+
+    Parameters:
+        request: The incoming HTTP request object.
+        coordinates: Spatial filter in WKT format.
+        start_time: Start time filter in ISO 8601 string format.
+        stop_time: Stop time filter in ISO 8601 string format.
+        num: Maximum number of items to retrieve.
+        limit: Limit on the number of items per page.
+        offset: Offset for pagination.
+
+    Returns:
+        JSONResponse: A paginated response containing STAC items matching the filters.
+
+    Raises:
+        HTTPException: If start_time is after stop_time or no data is found.
+    """
     validate_inputs(coordinates, start_time, stop_time)
     conn = duckdb_connection()
 
@@ -250,7 +324,25 @@ async def get_satellite_stac_data(
     limit: Optional[int] = Query(LIMIT, ge=1, le=15),
     offset: Optional[int] = Query(OFFSET, ge=0),
 ):
-    '''Retrives all the stac from the database as per the satellite/products'''
+    """
+    Retrieves STAC items filtered by satellite platform.
+
+    Parameters:
+        platform: The satellite platform to filter by.
+        request: The incoming HTTP request object.
+        coordinates: Spatial filter in WKT format.
+        start_time: Start time filter in ISO 8601 string format.
+        stop_time: Stop time filter in ISO 8601 string format.
+        num: Maximum number of items to retrieve.
+        limit: Limit on the number of items per page.
+        offset: Offset for pagination.
+
+    Returns:
+        JSONResponse: A paginated response containing STAC items for the specified platform.
+
+    Raises:
+        HTTPException: If the platform is invalid or no data is found.
+    """
     if platform not in ALLOWED_PLATFORM:                  
         raise HTTPException(status_code=400, detail="Invalid satellite")
 

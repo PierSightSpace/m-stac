@@ -11,6 +11,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def duckdb_connection():
+    """
+    Establishes a connection to in-memory DuckDB  database with connection to S3 and spatial extensions enabled.
+
+    Returns:
+        duckdb.DuckDBPyConnection: DuckDB connection object
+    """
+    
     S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY')
     S3_SECRET_KEY = os.getenv('S3_SECRET_KEY')
 

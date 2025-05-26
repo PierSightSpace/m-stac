@@ -33,6 +33,13 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown events:
     - Initializes the database schema
     - Starts a thread for periodic security key rotation for csrf protection
+    
+    Parameters:
+        app: The FastAPI application instance.
+
+    Returns:
+        None. Used as a context manager for FastAPI lifespan events.
+    
     '''
     global rotation_thread
     async with engine.begin() as conn:
@@ -57,31 +64,31 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["m-stac.onrender.com", 
 ############################################################################################################
 # CSRF Protection Settings
 ############################################################################################################
-class CsrfSettings(BaseModel):
-    secret_key: str = get_secret_key_csrf()
-    cookie_samesite: str = "none"
-    cookie_secure: bool = True
+# class CsrfSettings(BaseModel):
+#     secret_key: str = get_secret_key_csrf()
+#     cookie_samesite: str = "none"
+#     cookie_secure: bool = True
     
 
-csrf = CsrfProtect()
+# csrf = CsrfProtect()
 
 
-@CsrfProtect.load_config
-def get_csrf_config():
-    return CsrfSettings()
+# @CsrfProtect.load_config
+# def get_csrf_config():
+#     return CsrfSettings()
 
 
 ############################################################################################################
 # API End-Points
 ############################################################################################################
-@app.get("/csrftoken")
-async def get_csrf_token(
-    csrf_protect:CsrfProtect = Depends()
-):
-    response = JSONResponse(status_code=200, content={'csrf_token':'cookie'})
-    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
-    csrf_protect.set_csrf_cookie(signed_token, response)
-    return response
+# @app.get("/csrftoken")
+# async def get_csrf_token(
+#     csrf_protect:CsrfProtect = Depends()
+# ):
+#     response = JSONResponse(status_code=200, content={'csrf_token':'cookie'})
+#     csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+#     csrf_protect.set_csrf_cookie(signed_token, response)
+#     return response
     
     
 @app.post("/new_user", status_code=201, response_model=user_schema.PostUser)
@@ -90,7 +97,20 @@ async def create_users(
     db:AsyncSession = Depends(get_db),
     csrf_protect:CsrfProtect = Depends()
 ):
-    '''Creates a new user and saves in the table.'''
+    """
+    Creates a new user and saves it in the database.
+
+    Parameters:
+        user: The user data to create.
+        db: The database session dependency.
+        csrf_protect: The CSRF protection dependency (not used, can be removed).
+
+    Returns:
+        The created user object.
+
+    Raises:
+        HTTPException: If the email is already registered or user creation fails.
+    """
     existing_user = await db.execute(
         model.User.__table__.select().where(model.User.email==user.email)
     )
@@ -120,7 +140,20 @@ async def login(
     db: AsyncSession = Depends(get_db),
     csrf_protect:CsrfProtect = Depends()
 ):
-    '''Authenticates the user and returns the JWT token'''
+    """
+    Authenticates a user and returns a JWT token if credentials are valid.
+
+    Parameters:
+        user_login_details: The user's login credentials.
+        db: The database session dependency.
+        csrf_protect: The CSRF protection dependency (not used, can be removed).
+
+    Returns:
+        A dictionary containing the access token and token type.
+
+    Raises:
+        HTTPException: If the credentials are incorrect.
+    """
     user = await db.execute(
         select(model.User).where(model.User.email==user_login_details.email)
     )
@@ -143,7 +176,7 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
     
     
-@app.exception_handler(CsrfProtectError)
-def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
-  '''Handles CSRF protection errors'''
-  return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+# @app.exception_handler(CsrfProtectError)
+# def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
+#   '''Handles CSRF protection errors'''
+#   return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})

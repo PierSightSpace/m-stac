@@ -25,7 +25,16 @@ class LoggMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Coroutine[Any, Any, JSONResponse]],
 ):
-        '''Logs the request, response, time and other details of the request of each user'''
+        """
+        Logs the request, response, time and other details of the request of each user.
+        
+        Args:
+            request: Request Object containing the HTTP request data.
+            call_next: Callable function to process the request and return a response.
+        
+        Returns:
+            JSONResponse: Returns a JSON resposne with status code and detail message 
+        """
         try:
             req_body = await request.body()
             req_body_str = req_body.decode("utf-8") if req_body else "{}"
@@ -33,7 +42,7 @@ class LoggMiddleware(BaseHTTPMiddleware):
             req_body_str = "{}"
 
         start_time = time.perf_counter()
-        response =await call_next(request)
+        response = await call_next(request)
         process_time = time.perf_counter() - start_time
 
         body = [section async for section in response.body_iterator]
@@ -65,7 +74,16 @@ class LoggMiddleware(BaseHTTPMiddleware):
         db: AsyncSession,
         log_entry
     ):
-        '''Saves the log entry to the database'''
+        """
+        Saves the log entry to the database.
+        
+        Args:  
+            db: Postgre dataabse session to query the user information.
+            log_entry: Dictionary containing the log entry details.
+        
+        Returns:
+            None 
+        """
         query = text("""
             INSERT INTO stac_metadata.log_entry (path, method, request_body, response_body, process_time, timestamp)
             VALUES (:path, :method, :request_body, :response_body, :process_time, :timestamp)

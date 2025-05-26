@@ -10,11 +10,43 @@ from pydantic import BaseModel, HttpUrl
 # Cataog Schemas
 ############################################################################################################
 class Links(BaseModel):
+    """
+    Links model for storing links in model
+
+    Args:
+        BaseModel: Base class for pydantic models.
+    
+    Attributes:
+        rel: The relationship type of the link.
+        mime_type: The MIME type of the link.
+        href: The URL of the link.
+   
+    Returns: 
+        None
+    """
     rel: str
     mime_type: Literal["application/json", "application/geo+json", "application/vnd.oai.openapi+json;version=3.0", "text/html"]
     href: HttpUrl
     
 class CatalogBase(BaseModel):
+    """
+    CatalogBase model for storing catalog information in a model.
+
+    Args:
+        BaseModel: Base class for pydantic models.
+    
+    Attributes:
+        type: The type of the catalog.
+        id: The unique identifier of the catalog.
+        title: The title of the catalog.
+        description: A brief description of the catalog.
+        stac_version: The version of the STAC specification used.
+        links: A list cotaining the links associated with the catalog.
+        stac_extensions: A list of STAC extensions used in the catalog.
+   
+    Returns: 
+        None
+    """
     type: str
     id: str
     title: str

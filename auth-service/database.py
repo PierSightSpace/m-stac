@@ -30,7 +30,15 @@ Base = declarative_base()
 
 
 async def get_db():
-    '''Dependency function to provide database session.'''
+    """
+    Dependency function to provide postgre database session.
+    
+    Args: 
+        None
+        
+    Returns: 
+        AsyncSession: An asynchronous database session.
+    """
     db = AsyncSessionLocal()
     try:
         yield db
