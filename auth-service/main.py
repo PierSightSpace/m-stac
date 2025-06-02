@@ -45,11 +45,13 @@ tags_metadata = [
     }
 ]
 
-app = FastAPI(lifespan=lifespan,
-              title="auth-service",
-              description="Authentication Service for UserManagement",
-              version="1.0.0",
-              openapi_tags=tags_metadata)
+app = FastAPI(
+    lifespan=lifespan,
+    title="auth-service",
+    description="Authentication Service for UserManagement",
+    version="1.0.0",
+    openapi_tags=tags_metadata
+)
 
 
 ############################################################################################################

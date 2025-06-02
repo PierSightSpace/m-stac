@@ -23,6 +23,13 @@ from middlewares.jwt_auth_middleware import JWTAuthMiddleware
 from middlewares.logg_middleware import LoggMiddleware
 from utils import convert_to_datetime
 
+# Swagger UI Metadata
+tags_metadata = [
+    {
+        "name": "STAC Catalog",
+        "description": "Endpoints for accessing the PierSight STAC catalog and retrieving STAC items.",
+    }
+]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,7 +40,13 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
         
         
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="STAC API Service",
+    description="API Service for accessing PierSight STAC catalog and items",
+    version="1.0.0",
+    openapi_tags=tags_metadata    
+)
 
 
 ############################################################################################################
@@ -193,7 +206,13 @@ def validate_inputs(coordinates, start_time, stop_time):
 ############################################################################################################
 # API End-Points
 ############################################################################################################
-@app.get("/eodata/v1/catalog", response_model=catalog.CatalogBase)
+@app.get(
+    "/eodata/v1/catalog", 
+    response_model=catalog.CatalogBase,
+    summary="Get PierSight Catalog",
+    description="Return the PierSight catalog metadata.",
+    tags=["STAC Catalog"]    
+)
 async def get_piersight_catalog():
     """
     Returns the PierSight catalog metadata.
@@ -212,7 +231,67 @@ async def get_piersight_catalog():
     return catalog_result
 
 
-@app.get("/eodata/v1/stacs/all", response_model=stac.StacOutputBase)
+@app.get(
+    "/eodata/v1/stacs/all", 
+    response_model=stac.StacOutputBase,
+    summary="Get All STAC Items",
+    description="Retrieves all STAC items from the database with optional filters.",
+    tags=["STAC Catalog"],
+    responses={
+        200: {
+            "description": "A paginated response containing STAC items.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total_count": 100,
+                        "products": [
+                            {
+                                "id": "item1",
+                                "type": "Feature",
+                                "geometry_type": "Polygon",
+                                "geometry_coordinates": {
+                                    "coordinates": [[...]]
+                                },
+                                # Other fields...
+                            }
+                        ],
+                        "next": None
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Invalid input parameters.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "start_time: 2023-01-01T00:00:00 is exceeding stop_time: 2022-12-31T23:59:59"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "No data found for the given input.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No data found for given input"
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Invalid coordinates or time format.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid coordinates; Must be in WKT format"
+                    }
+                }
+            }
+        }
+    }
+)
 async def get_all_stacs(
     request: Request,
     coordinates: Optional[str] = Query(None),
@@ -313,7 +392,67 @@ async def get_all_stacs(
     return stac.StacOutputBase(total_count=len(products), products=products, next=next_url)
 
 
-@app.get("/eodata/v1/stacs/satellite/{platform}", response_model=stac.StacOutputBase)
+@app.get(
+    "/eodata/v1/stacs/satellite/{platform}", 
+    response_model=stac.StacOutputBase,
+    summary="Get STAC Items by Satellite Platform",
+    description="Retrieves STAC items filtered by satellite platform with optional spatial and temporal filters.",
+    tags=["STAC Catalog"],
+    responses={
+        200: {
+            "description": "A paginated response containing STAC items for the specified platform.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total_count": 50,
+                        "products": [
+                            {
+                                "id": "item1",
+                                "type": "Feature",
+                                "geometry_type": "Polygon",
+                                "geometry_coordinates": {
+                                    "coordinates": [[...]]
+                                },
+                                # Other fields...
+                            }
+                        ],
+                        "next": None
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Invalid input parameters",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid satellite"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "No data found for the specified platform",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No data found for the satellite: VARUNA-1"
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Invalid coordinates or time format",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid coordinates; Must be in WKT format"
+                    }
+                }
+            }
+        }
+    }    
+)
 async def get_satellite_stac_data(
     platform: str,
     request: Request,
