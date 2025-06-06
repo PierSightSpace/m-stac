@@ -1,11 +1,11 @@
 # Imports
 # Standard Library Imports
 from datetime import datetime
-
-# Third-Party Imports
 from sqlalchemy import Column, Integer, String, DateTime
-from database.postgre import Base
 from sqlalchemy_utils import EmailType
+
+# Local Imports
+from database.postgre import Base
 
 
 ############################################################################################################

@@ -1,8 +1,9 @@
 # Imports
-# Third-Party Imports
+# Standard Library Imports
 from sqlalchemy import Column, Integer, Float, String, DateTime
-from database.postgre import Base
 
+# Local Imports
+from database.postgre import Base
 
 ############################################################################################################
 # LogEntry Model

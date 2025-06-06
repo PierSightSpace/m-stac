@@ -68,33 +68,27 @@ class StacBase(BaseModel):
     """
     id: Optional[int] = None
     type: Optional[str] = None 
-    geometry_type: str
-    geometry_coordinates: Geometry
+    geom_type: str
+    bounding_box_wkb: Geometry
     beam_mode: Optional[str] = None
     browse: Optional[HttpUrl] = None
     bytes: Optional[int] = None
     center_lat: Optional[float] = None
     center_lon: Optional[float] = None
-    file_id: str
-    file_name: Optional[str] = None
-    flight_direction: Optional[str] = None
+    product_name: str
+    product_file: Optional[str] = None
+    orbit_direction: Optional[str] = None
     frame_number: Optional[int] = None
-    granule_type: Optional[str] = None
-    group_id: Optional[str] = None
     md5_sum: Optional[str] = None
-    orbit: Optional[int] = None
-    path_number: Optional[int] = None
-    pge_version: Optional[str] = None
-    platform: Optional[str] = None
+    orbit_absolute_number: Optional[int] = None
+    processor_version: Optional[str] = None
+    satellite_name: Optional[str] = None
     polarization: Optional[str] = None
-    processing_date: Optional[date] = None
-    processing_level: Optional[str] = None
-    s3_urls: Optional[str] = None
-    scene_name: Optional[str] = None
-    sensor: Optional[str] = None
-    start_time: Optional[datetime] = None
-    stop_time: Optional[datetime] = None
-    url: Optional[HttpUrl] = None
+    processing_time: Optional[date] = None
+    product_level: Optional[str] = None
+    acquisition_start_utc: Optional[datetime] = None
+    acquisition_end_utc: Optional[datetime] = None
+    assets: Optional[HttpUrl] = None
     
 
 class StacOutputBase(BaseModel):
@@ -117,7 +111,6 @@ class StacOutputBase(BaseModel):
     class Config:
         form_attribute = True
         extra = "forbid"
-    
-    
+   
     
     

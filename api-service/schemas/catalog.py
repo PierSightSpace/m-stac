@@ -27,6 +27,7 @@ class Links(BaseModel):
     rel: str
     mime_type: Literal["application/json", "application/geo+json", "application/vnd.oai.openapi+json;version=3.0", "text/html"]
     href: HttpUrl
+    title: Optional[str] = None
     
 class CatalogBase(BaseModel):
     """

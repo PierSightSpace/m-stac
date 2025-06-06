@@ -31,6 +31,8 @@ PUBLIC_KEY = base64.b64decode(os.getenv("ECDSA_PUBLIC_KEY")).decode("utf-8")
 # User Authorization Middleware Definition
 ############################################################################################################
 class JWTAuthMiddleware(BaseHTTPMiddleware):
+    EXCLUDED_PATHS = ["/api"]
+
     async def dispatch(
         self,
         request: Request,
@@ -47,6 +49,9 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             JSONResponse: Returns a JSON resposne with status code and detail message if the user is authorized or not.
         """
         try:
+            if request.url.path in self.EXCLUDED_PATHS:
+                return await call_next(request)
+            
             if "Authorization" not in request.headers:
                 return JSONResponse(status_code=401, content={"detail": "Unauthorized! No token provided"})
             
