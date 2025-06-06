@@ -3,7 +3,7 @@
 from datetime import datetime
  
 # Third-Party Imports
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -18,6 +18,7 @@ from slowapi.errors import RateLimitExceeded
 # Local Imports
 from database import engine, get_db
 from schemas import user as user_schema
+from utils import hash_pass, verify_password
 from utils import hash_pass, verify_password
 from auth import create_access_token
 from models import user as model
@@ -65,13 +66,7 @@ limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 ############################################################################################################
 # app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["m-stac.onrender.com", "127.0.0.1"])
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
-    status_code=429,
-    content={"detail": "Rate limit exceeded. Try again later."}
-))
- 
-   
+
 ############################################################################################################
 # API End-Points
 ############################################################################################################
@@ -212,7 +207,8 @@ async def login(
     Parameters:
         user_login_details: The user's login credentials.
         db: The database session dependency.
- 
+        csrf_protect: The CSRF protection dependency (not used, can be removed).
+
     Returns:
         A dictionary containing the access token and token type.
  

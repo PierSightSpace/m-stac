@@ -21,7 +21,7 @@ from middlewares.jwt_auth_middleware import JWTAuthMiddleware
 from middlewares.logg_middleware import LoggMiddleware
 from routers import catalog, collections, search, items
 
-       
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     '''
