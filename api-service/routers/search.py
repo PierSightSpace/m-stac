@@ -22,7 +22,67 @@ router = APIRouter()
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
 
-@router.post("/v1/search", response_model=stac.StacOutputBase)
+@router.post(
+    "/v1/search", 
+    response_model=stac.StacOutputBase,
+    summary="All STAC Items",
+    description="Retrieves all STAC items from the database with optional filters.",
+    tags=["STAC Catalog"],
+    responses={
+        200: {
+            "description": "A paginated response containing STAC items.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total_count": 100,
+                        "products": [
+                            {
+                                "id": "item1",
+                                "type": "Feature",
+                                "geom_type": "Polygon",
+                                "bounding_box_wkb": {
+                                    "coordinates": [[...]]
+                                },
+                                # Other fields...
+                            }
+                        ],
+                        "next": None
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Invalid input parameters.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "acquisition_start_utc: 2023-01-01T00:00:00 is exceeding acquisition_end_utc: 2022-12-31T23:59:59"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "No data found for the given input.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No data found for given input"
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Invalid coordinates or time format.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid coordinates; Must be in WKT format"
+                    }
+                }
+            }
+        }
+    }
+)
 @cache(expire=3600, key_builder=my_key_builder)
 @limiter.limit("5/minute")
 async def get_all_stacs(
@@ -41,6 +101,7 @@ async def get_all_stacs(
 
     Parameters:
         request: The incoming HTTP request object.
+        response: 
         collectionId:Filter for the satellite collection.
         coordinates: Spatial filter in WKT format.
         start_time: Start time filter in ISO 8601 string format.

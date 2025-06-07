@@ -66,29 +66,28 @@ class StacBase(BaseModel):
     Returns:
         None
     """
-    id: Optional[int] = None
+    id: str = None
     type: Optional[str] = None 
     geom_type: str
     bounding_box_wkb: Geometry
     beam_mode: Optional[str] = None
-    browse: Optional[HttpUrl] = None
+    browse: Optional[str] = None
     bytes: Optional[int] = None
     center_lat: Optional[float] = None
     center_lon: Optional[float] = None
     product_name: str
     product_file: Optional[str] = None
     orbit_direction: Optional[str] = None
-    frame_number: Optional[int] = None
     md5_sum: Optional[str] = None
     orbit_absolute_number: Optional[int] = None
     processor_version: Optional[str] = None
     satellite_name: Optional[str] = None
     polarization: Optional[str] = None
-    processing_time: Optional[date] = None
+    processing_time: Optional[datetime] = None
     product_level: Optional[str] = None
     acquisition_start_utc: Optional[datetime] = None
     acquisition_end_utc: Optional[datetime] = None
-    assets: Optional[HttpUrl] = None
+    assets: Optional[str] = None
     
 
 class StacOutputBase(BaseModel):

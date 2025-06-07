@@ -21,7 +21,11 @@ from utils import my_key_builder
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
-@router.post("/v1/collections", response_model=collection.CollectionModel)
+@router.post(
+    "/v1/collections", 
+    response_model=collection.CollectionModel,
+
+)
 async def create_collection(
     new_collection: collection.CollectionModel,
     db:AsyncSession = Depends(get_db)
@@ -57,7 +61,11 @@ async def create_collection(
         HTTPException(status_code=422, detail=f"Error creating collection: {str(e)}")
 
 
-@router.get("/v1/collections", response_model=List[collection.CollectionModel])
+@router.get(
+    "/v1/collections", 
+    response_model=List[collection.CollectionModel],
+    
+)
 @cache(expire=86400, key_builder=my_key_builder)
 @limiter.limit("5/minute")
 async def get_all_collections(

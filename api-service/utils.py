@@ -40,7 +40,8 @@ def extract_geometry_coords(geometry_data):
     Returns:
         The coordinates extracted from the geometry.
     """
-    stac_geojson_str = to_geojson(geometry_data, indent=2)
+    geom = wkb.loads(bytes.fromhex(geometry_data))
+    stac_geojson_str = to_geojson(geom, indent=2)
     stac_geojson = json.loads(stac_geojson_str)
     geom_coords = stac_geojson["coordinates"]
     return geom_coords
@@ -70,13 +71,12 @@ def build_products(stac_obj) -> stac.StacBase:
         product_name=stac_obj["product_name"],
         product_file=stac_obj["product_file"],
         orbit_direction=stac_obj["orbit_direction"],
-        frame_number=stac_obj["frame_number"],
         md5_sum=stac_obj["md5_sum"],
         orbit_absolute_number=stac_obj["orbit_absolute_number"],
         processor_version=stac_obj["processor_version"],
         satellite_name=stac_obj["satellite_name"],
         polarization=stac_obj["polarization"],
-        processing_time=stac_obj["processing_date"],
+        processing_time=stac_obj["processing_time"],
         product_level=stac_obj["product_level"],
         acquisition_start_utc=stac_obj["acquisition_start_utc"],
         acquisition_end_utc=stac_obj["acquisition_end_utc"],
@@ -96,7 +96,7 @@ def serialize_rows(dataframe):
     Returns:
         A list of dictionaries representing the serialized records.
     """
-    dataframe['geom_type'] = dataframe['bounding_box_wkb'].apply(lambda x: wkb.loads(x) if x else None)
+    dataframe['geometry'] = dataframe['bounding_box_wkb'].apply(lambda x: wkb.loads(x) if x else None)
     gdf = gpd.GeoDataFrame(dataframe, geometry='geometry', crs='EPSG:4326')
     result =  gdf.to_dict(orient='records')
 

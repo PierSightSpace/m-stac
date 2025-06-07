@@ -14,7 +14,14 @@ from utils import my_key_builder
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
-@router.get("/v1", response_model=catalog.CatalogBase) 
+@router.get(
+    "/v1", 
+    response_model=catalog.CatalogBase,
+    summary="PierSight STAC Catalog",
+    description="Return the PierSight catalog metadata.",
+    tags=["STAC Catalog"],
+        
+) 
 @cache(expire=86400, key_builder=my_key_builder)
 @limiter.limit("5/minute")
 async def get_piersight_catalog(

@@ -73,7 +73,7 @@ app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
     status_code=429,
     content={"detail": "Rate limit exceeded. Try again later."}
 ))
-app.add_middleware(LoggMiddleware)
+# app.add_middleware(LoggMiddleware)
 
   
 ############################################################################################################
