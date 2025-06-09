@@ -66,7 +66,7 @@ limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 # Middlewares
 ############################################################################################################
 # app.add_middleware(HTTPSRedirectMiddleware)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])   # stac.eodata.piersight.space - Hostname for production
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["0.0.0.0", "127.0.0.1", "localhost"])   # stac.eodata.piersight.space - Hostname for production
 # app.add_middleware(JWTAuthMiddleware)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
