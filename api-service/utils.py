@@ -79,7 +79,6 @@ def build_products(stac_obj) -> stac.StacBase:
         satellite_name=stac_obj["satellite_name"],
         polarization=stac_obj["polarization"],
         processing_time=stac_obj["processing_time"],
-        processing_time=stac_obj["processing_time"],
         product_level=stac_obj["product_level"],
         acquisition_start_utc=stac_obj["acquisition_start_utc"],
         acquisition_end_utc=stac_obj["acquisition_end_utc"],
