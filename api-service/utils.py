@@ -6,11 +6,13 @@ from datetime import datetime
 
 # Third-Party Imports
 from fastapi import HTTPException
-from shapely import wkb, wkt, to_geojson
+from shapely import wkb, to_geojson
+import pandas as pd
 import geopandas as gpd
 
 # Local Imports
 from schemas import stac
+
 
 def convert_to_datetime(time_in_str):
     """
@@ -70,13 +72,12 @@ def build_products(stac_obj) -> stac.StacBase:
         product_name=stac_obj["product_name"],
         product_file=stac_obj["product_file"],
         orbit_direction=stac_obj["orbit_direction"],
-        frame_number=stac_obj["frame_number"],
         md5_sum=stac_obj["md5_sum"],
         orbit_absolute_number=stac_obj["orbit_absolute_number"],
         processor_version=stac_obj["processor_version"],
         satellite_name=stac_obj["satellite_name"],
         polarization=stac_obj["polarization"],
-        processing_time=stac_obj["processing_date"],
+        processing_time=stac_obj["processing_time"],
         product_level=stac_obj["product_level"],
         acquisition_start_utc=stac_obj["acquisition_start_utc"],
         acquisition_end_utc=stac_obj["acquisition_end_utc"],
@@ -84,7 +85,7 @@ def build_products(stac_obj) -> stac.StacBase:
     )
 
 
-def serialize_rows(dataframe):
+def serialize_rows(rows, keys):
     """
     Serializes a DataFrame of records to a list of dictionaries.
 
@@ -96,9 +97,11 @@ def serialize_rows(dataframe):
     Returns:
         A list of dictionaries representing the serialized records.
     """
-    dataframe['geom_type'] = dataframe['bounding_box_wkb'].apply(lambda x: wkb.loads(x) if x else None)
-    gdf = gpd.GeoDataFrame(dataframe, geometry='geometry', crs='EPSG:4326')
-    result =  gdf.to_dict(orient='records')
+    df = pd.DataFrame(rows, columns=keys)
+    gdf = gpd.GeoDataFrame(df,geometry=gpd.GeoSeries.from_wkb(df['bounding_box_wkb'], crs="EPSG:4326"))
+    gdf = gdf.drop(columns=['bounding_box_wkb'])
+    gdf = gdf.rename(columns={'geometry': 'bounding_box_wkb'})
+    result = gdf.to_dict(orient='records')
 
     for res in result:
         for key, value in res.items():
@@ -107,7 +110,7 @@ def serialize_rows(dataframe):
                 res[key] = None
     return result
         
-def validate_coordinates(coordinates: Optional[str]):
+def validate_bbox(bbox: Optional[str]):
     """
     Validates that the provided coordinates are in a valid WKT format.
 
@@ -117,13 +120,15 @@ def validate_coordinates(coordinates: Optional[str]):
     Raises:
         HTTPException: If the coordinates are not valid WKT.
     """
-    if coordinates is not None:
-        try: 
-            geometry = wkt.loads(coordinates)
-        except Exception:
-            raise HTTPException(status_code=422, detail="Invalid coordinates; Must be in WKT format")
+    if bbox is not None:
+        if not (len(bbox)==4 or len(bbox)==6):
+            raise HTTPException(status_code=422, detail="bbox must have 4 or 6 numbers.")
+    
+        min_lon, min_lat, max_lon, max_lat = bbox[:4]
+        if min_lon > max_lon or min_lat > max_lat:
+            raise HTTPException(status_code=422, detail="bbox coordinates are invalid.")
+    
                     
-
 def validate_time(time: Optional[str], field_name):
     """
     Validates that the provided time string is in ISO 8601 format.
@@ -144,9 +149,9 @@ def validate_time(time: Optional[str], field_name):
             raise HTTPException(status_code=422, detail=f"Invalid {field_name}; Must be in ISO 8601 datetime.")
         
 
-def validate_inputs(coordinates, start_time, stop_time):
+def validate_inputs(bbox, start_time, stop_time):
     """
-    Validates the input parameters for coordinates and time filters.
+    Validates the input parameters for bbox and time filters.
 
     Parameters:
         coordinates: The geometry coordinates to validate.
@@ -156,7 +161,7 @@ def validate_inputs(coordinates, start_time, stop_time):
     Raises:
         HTTPException: If any input is invalid.
     """
-    validate_coordinates(coordinates)
+    validate_bbox(bbox)
     validate_time(start_time, field_name="start_time")
     validate_time(stop_time, field_name="stop_time")
     

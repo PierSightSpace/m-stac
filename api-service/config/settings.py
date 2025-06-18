@@ -1,5 +1,3 @@
-BASE_QUERY = f"""SELECT * FROM read_parquet('s3://piersight-stac/stac_*.parquet') """
-
 COLLECTIONS = {
     "PierSight_V01", 
     "PierSight_V02", 

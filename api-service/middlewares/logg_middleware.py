@@ -85,7 +85,7 @@ class LoggMiddleware(BaseHTTPMiddleware):
             None 
         """
         query = text("""
-            INSERT INTO stac_metadata.log_entry (path, method, request_body, response_body, process_time, timestamp)
+            INSERT INTO piersight_stac.log_entry (path, method, request_body, response_body, process_time, timestamp)
             VALUES (:path, :method, :request_body, :response_body, :process_time, :timestamp)
         """)
         try:

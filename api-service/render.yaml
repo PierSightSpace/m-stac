@@ -1,9 +1,0 @@
-services:
-  - name: app
-    type: web
-    runtime: image
-    image:
-      url: docker.io/tiangolo/uvicorn-gunicorn-fastapi:python3.10
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 8001
-    plan: free

@@ -20,7 +20,7 @@ class Collection(Base):
         
     """
     __tablename__ = 'collections'
-    __table_args__ = {'schema': 'stac_metadata'}
+    __table_args__ = {'schema': 'piersight_stac'}
     
     id = Column(String, primary_key=True, index=True)
     type = Column(String, nullable=False, default='collection')

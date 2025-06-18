@@ -30,7 +30,7 @@ class LogEntry(Base):
         None
     """
     __tablename__ = 'log_entry'
-    __table_args__ = {'schema': 'stac_metadata'}
+    __table_args__ = {'schema': 'piersight_stac'}
     
     id = Column(Integer, primary_key=True, index=True)
     path = Column(String(256), nullable=False)

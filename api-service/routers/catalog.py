@@ -1,6 +1,6 @@
 # Imports
 # Third-Party Imports
-from fastapi import  APIRouter, Request
+from fastapi import APIRouter, Request, status
 from fastapi_cache.decorator import cache
 from starlette.responses import Response
 from slowapi import Limiter
@@ -14,18 +14,68 @@ from utils import my_key_builder
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
-@router.get("/v1", response_model=catalog.CatalogBase) 
+@router.get(
+    "/", 
+    response_model=catalog.CatalogBase,
+    summary="Get STAC Catalog",
+    description="""
+    Retrieves the root STAC catalog containing metadata about available collections.
+    
+    The catalog provides:
+    - Basic information about the PierSight STAC API
+    - Links to child collections
+    - Version information
+    - Available extensions
+    
+    The response follows the STAC specification for catalog objects.
+    """,
+    response_description="A STAC catalog object containing metadata and links to collections",
+    status_code=200,
+    responses={
+        200: {
+            "description": "Successfully retrieved the STAC catalog",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "type": "Catalog",
+                        "id": "piersight-catalog",
+                        "title": "PierSight Catalog",
+                        "description": "PierSight's STAC catalog for maritime surveillance data",
+                        "stac_version": "1.0.0",
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://stac.eodata.piersight.space/v1/"
+                            },
+                            {
+                                "rel": "child",
+                                "href": "https://stac.eodata.piersight.space/v1/collections/PierSight_V01"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
 @cache(expire=86400, key_builder=my_key_builder)
 @limiter.limit("5/minute")
 async def get_piersight_catalog(
     request: Request,
-    response : Response,
+    response: Response,
 ):
     """
-    Returns the PierSight catalog metadata.
+    Returns the PierSight STAC catalog metadata.
+
+    This endpoint provides the root catalog information for the PierSight STAC API,
+    including links to all available collections and API endpoints.
+
+    Args:
+        request (Request): The incoming HTTP request
+        response (Response): The outgoing HTTP response
 
     Returns:
-        A dictionary containing the catalog metadata.
+        dict: A dictionary containing the catalog metadata.
     """
     catalog_result = {
         "type": "Catalog",
@@ -44,6 +94,31 @@ async def get_piersight_catalog(
                     "rel": "root",
                     "mime_type": "application/geo+json",
                     "href": "https://stac.eodata.piersight.space/v1/"
+                },
+                {
+                    "rel": "service-desc",
+                    "type": "application/vnd.oai.openapi+json;version=3.0",
+                    "href": "https://stac.eodata.piersight.space/api/openapi.json"
+                },
+                {
+                    "rel": "service-doc",
+                    "type": "text/html",
+                    "href": "https://stac.eodata.piersight.space/api"
+                },
+                {
+                    "rel": "conformance",
+                    "type": "application/json",
+                    "href": "https://stac.eodata.piersight.space/v1/conformance"
+                },
+                {
+                    "rel": "data",
+                    "type": "application/json",
+                    "href": "https://stac.eodata.piersight.space/v1/collections"
+                },
+                {
+                    "rel": "search",
+                    "type": "application/geo+json",
+                    "href": "https://stac.eodata.piersight.space/v1/search"
                 },
                 {
                     "rel": "child",
@@ -242,3 +317,66 @@ async def get_piersight_catalog(
     }
     
     return catalog_result
+
+
+@router.get(
+    "/conformance",
+    response_model=catalog.ConformanceResponse,
+    summary="Get API Conformance",
+    description="""
+    Lists the conformance classes that the API conforms to.
+    
+    This endpoint is required by the OGC API specification and lists all
+    conformance classes implemented by this API.
+    """,
+    response_description="A list of conformance classes that the API implements",
+    status_code=200,
+    responses={
+        200: {
+            "description": "The list of conformance classes implemented by this API",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "conformsTo": [
+                            "https://api.stacspec.org/v1.0.0/core",
+                            "https://api.stacspec.org/v1.0.0/collections",
+                            "https://api.stacspec.org/v1.0.0/search"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
+@cache(expire=86400, key_builder=my_key_builder)
+@limiter.limit("5/minute")
+async def get_conformance(
+    request: Request,
+    response: Response,
+):
+    """
+    Returns the conformance declaration for the API.
+
+    This endpoint lists all the standards and specifications that this API
+    implements, helping clients understand the capabilities of the service.
+
+    Args:
+        request (Request): The incoming HTTP request
+        response (Response): The outgoing HTTP response
+
+    Returns:
+        dict: A conformance object listing implemented specifications
+    """
+    return {
+        "conformsTo": [
+            "https://api.stacspec.org/v1.0.0/core",
+            "https://api.stacspec.org/v1.0.0/collections",
+            "https://api.stacspec.org/v1.0.0/search",
+            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
+            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
+            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/html",
+            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"
+        ]
+    }
+    return conformance_result
+

@@ -59,3 +59,32 @@ class CatalogBase(BaseModel):
     class Config:
         form_attribute = True
         extra = "forbid"
+
+class ConformanceResponse(BaseModel):
+    """
+    ConformanceResponse model for the API conformance declaration.
+
+    Args:
+        BaseModel: Base class for pydantic models.
+    
+    Attributes:
+        conformsTo: A list of URIs identifying the conformance classes implemented by the API.
+   
+    Returns: 
+        None
+    """
+    conformsTo: List[str]
+    
+    class Config:
+        form_attribute = True
+        extra = "forbid"
+        json_schema_extra = {
+            "example": {
+                "conformsTo": [
+                    "https://api.stacspec.org/v1.0.0/core",
+                    "https://api.stacspec.org/v1.0.0/collections",
+                    "https://api.stacspec.org/v1.0.0/search",
+                    "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
+                ]
+            }
+        }

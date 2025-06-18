@@ -1,4 +1,6 @@
 # Imports
+import time
+
 # Third-Party Imports
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -22,6 +24,8 @@ from middlewares.logg_middleware import LoggMiddleware
 from routers import catalog, collections, search, items
 
 
+duckdb_conn = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     '''
@@ -44,23 +48,69 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
-# Swagger UI Metadata
+# OpenAPI Documentation Metadata
 tags_metadata = [
     {
-        "name": "STAC APIs",
-        "description": "Endpoints for accessing STAC data, including collections",
+        "name": "Catalog",
+        "description": "Operations for retrieving STAC catalog information and conformance details.",
+    },
+    {
+        "name": "Collections",
+        "description": "Access and manage STAC collections containing satellite imagery data.",
+    },
+    {
+        "name": "Search",
+        "description": "Search and filter STAC items based on temporal, spatial, and collection criteria.",
+    },
+    {
+        "name": "Items",
+        "description": "Retrieve detailed information about individual STAC items.",
     }
 ]
 
 app = FastAPI(
     lifespan=lifespan,
     title='STAC APIs',
-    description='STAC APIs for PierSight Space Maritime Servilliance Data',
+    description='''
+    STAC APIs for PierSight Space Maritime Servilliance Data
+    
+    ## Features
+    - STAC Compliant: Implements STAC API specification version 1.0.0
+    - Rate Limiting: Ensure fair usage of the API
+    - Caching: Optimized response times through Redis caching
+    - Rich Filtering: Search by temporal, spatial and collection parameters.
+    - Authentication: Secure access through JWT authentication
+    
+    ## Rate Limits
+    - Default rate limit: 5 requests per minute
+    - Cache duration: 1 hour for search results, 24 hours for staic content
+    
+    ## Authentication
+    Most endpoint require JWT authentication. Include the JWT token in the authorization header:
+    ```
+    Authorization: Bearer <your_token>
+    ```
+    
+    ## Contact
+    - Website: https://piersight.space
+    ''',
     version='1.0.0',
     openapi_tags=tags_metadata,
-    docs_url='/api',    
+    docs_url='/api',
+    terms_of_service="https://piersight.space/terms/",
+    contact={
+        "name": "PierSight API Support",
+        "url": "https://piersight.space/support",
+        "email": "support@piersight.space",
+    },
+    license_info={
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    }    
 )
+
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
+
 
 ############################################################################################################
 # Middlewares
@@ -71,16 +121,19 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
     status_code=429,
-    content={"detail": "Rate limit exceeded. Try again later."}
+    content={
+        "detail": "Rate limit exceeded. Try again later.",
+        "type": "RateLimitExceeded",
+        "retry_after": exc.retry_after
+    }
 ))
 app.add_middleware(LoggMiddleware)
-
   
 ############################################################################################################
 # API End-Points
 ############################################################################################################
-app.include_router(catalog.router, tags=["Catalog"])
-app.include_router(collections.router, tags=["Collections"])
-app.include_router(search.router, tags=["Search"])
-app.include_router(items.router, tags=["Items"])
+app.include_router(catalog.router, prefix="/v1", tags=["Catalog"])
+app.include_router(collections.router, prefix="/v1", tags=["Collections"])
+app.include_router(search.router, prefix="/v1", tags=["Search"])
+app.include_router(items.router, prefix="/v1", tags=["Items"])
 
