@@ -1,6 +1,7 @@
 # Imports
 # Standard Library Imports
 import os
+import os
 from typing import Optional
 
 # Third-Party Imports
@@ -13,6 +14,8 @@ from starlette.responses import Response, StreamingResponse
 from urllib.parse import urlparse, parse_qs, urlencode
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+import boto3
+from botocore.exceptions import ClientError
 import boto3
 from botocore.exceptions import ClientError
 
@@ -113,7 +116,6 @@ async def get_satellite_stac_data(
     Retrieves STAC items filtered by satellites a.k.a collectionId.
 
     Parameters:
-        collectionId: The satellite to filter by.
         request: The incoming HTTP request object.
         bbox: Bounding box [minLon, minLat, maxLon, maxLat].
         start_time: Start time filter in ISO 8601 string format.

@@ -65,7 +65,7 @@ limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 # Middlewares
 ############################################################################################################
 # app.add_middleware(HTTPSRedirectMiddleware)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["m-stac.onrender.com", "127.0.0.1"])
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["0.0.0.0", "localhost", "127.0.0.1"])
 
 ############################################################################################################
 # API End-Points
