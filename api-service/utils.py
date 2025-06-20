@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Third-Party Imports
 from fastapi import HTTPException
-from shapely import wkb, to_geojson
+from shapely import wkt, wkb, to_geojson
 import pandas as pd
 import geopandas as gpd
 
@@ -42,11 +42,9 @@ def extract_geometry_coords(geometry_data):
     Returns:
         The coordinates extracted from the geometry.
     """
-    geom = wkb.loads(bytes.fromhex(geometry_data))
-    stac_geojson_str = to_geojson(geom, indent=2)
-    stac_geojson = json.loads(stac_geojson_str)
-    geom_coords = stac_geojson["coordinates"]
-    return geom_coords
+    coords = list(geometry_data.exterior.coords)
+    return coords
+    
 
 
 def build_products(stac_obj) -> stac.StacBase:
@@ -98,9 +96,11 @@ def serialize_rows(rows, keys):
     Returns:
         A list of dictionaries representing the serialized records.
     """
-    dataframe['geom_type'] = dataframe['bounding_box_wkb'].apply(lambda x: wkb.loads(x) if x else None)
-    gdf = gpd.GeoDataFrame(dataframe, geometry='geometry', crs='EPSG:4326')
-    result =  gdf.to_dict(orient='records')
+    df = pd.DataFrame(rows, columns=keys)
+    gdf = gpd.GeoDataFrame(df,geometry=gpd.GeoSeries.from_wkb(df['bounding_box_wkb'], crs="EPSG:4326"))
+    gdf = gdf.drop(columns=['bounding_box_wkb'])
+    gdf = gdf.rename(columns={'geometry': 'bounding_box_wkb'})
+    result = gdf.to_dict(orient='records')
 
     for res in result:
         for key, value in res.items():

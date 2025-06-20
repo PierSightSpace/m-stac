@@ -107,7 +107,7 @@ async def create_collection(
 
 @router.get(
     "/collections",
-    response_model=collection.CollectionModel,
+    response_model=List[collection.CollectionModel],
     summary="List Collections",
     description="""
     Retrieves all available collections in the catalog.
