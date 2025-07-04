@@ -101,6 +101,11 @@ def serialize_rows(rows, keys):
     gdf = gdf.drop(columns=['bounding_box_wkb'])
     gdf = gdf.rename(columns={'geometry': 'bounding_box_wkb'})
     result = gdf.to_dict(orient='records')
+    df = pd.DataFrame(rows, columns=keys)
+    gdf = gpd.GeoDataFrame(df,geometry=gpd.GeoSeries.from_wkb(df['bounding_box_wkb'], crs="EPSG:4326"))
+    gdf = gdf.drop(columns=['bounding_box_wkb'])
+    gdf = gdf.rename(columns={'geometry': 'bounding_box_wkb'})
+    result = gdf.to_dict(orient='records')
 
     for res in result:
         for key, value in res.items():
