@@ -59,7 +59,7 @@ limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
     }
 )
 @cache(expire=86400, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_piersight_catalog(
     request: Request,
     response: Response,
@@ -97,27 +97,27 @@ async def get_piersight_catalog(
                 },
                 {
                     "rel": "service-desc",
-                    "type": "application/vnd.oai.openapi+json;version=3.0",
+                    "mime_type": "application/vnd.oai.openapi+json;version=3.0",
                     "href": "https://stac.eodata.piersight.space/api/openapi.json"
                 },
                 {
                     "rel": "service-doc",
-                    "type": "text/html",
+                    "mime_type": "text/html",
                     "href": "https://stac.eodata.piersight.space/api"
                 },
                 {
                     "rel": "conformance",
-                    "type": "application/json",
+                    "mime_type": "application/json",
                     "href": "https://stac.eodata.piersight.space/v1/conformance"
                 },
                 {
                     "rel": "data",
-                    "type": "application/json",
+                    "mime_type": "application/json",
                     "href": "https://stac.eodata.piersight.space/v1/collections"
                 },
                 {
                     "rel": "search",
-                    "type": "application/geo+json",
+                    "mime_type": "application/geo+json",
                     "href": "https://stac.eodata.piersight.space/v1/search"
                 },
                 {
@@ -349,7 +349,7 @@ async def get_piersight_catalog(
     }
 )
 @cache(expire=86400, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_conformance(
     request: Request,
     response: Response,

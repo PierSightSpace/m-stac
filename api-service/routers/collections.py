@@ -16,6 +16,7 @@ from database.postgre import get_db
 from models import collection as collection_model
 from schemas import collection
 from utils import my_key_builder
+from config.settings import COLLECTIONS
 
 
 router = APIRouter()
@@ -85,9 +86,8 @@ async def create_collection(
         existing = await db.execute(
             select(collection_model.Collection).where(collection_model.Collection.id == new_collection.id)
         )
-        if existing.scalar_one_or_none():
+        if existing.scalars().all():
             raise HTTPException(status_code=409, detail=f"Collection with ID '{new_collection.id}' already exists")
-
         collection_data = new_collection.dict()
         for link in collection_data["links"]:
             link['href'] = str(link['href'])
@@ -107,7 +107,7 @@ async def create_collection(
 
 @router.get(
     "/collections",
-    response_model=collection.CollectionModel,
+    response_model=List[collection.CollectionModel],
     summary="List Collections",
     description="""
     Retrieves all available collections in the catalog.
@@ -146,7 +146,7 @@ async def create_collection(
     }
 )
 @cache(expire=86400, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_all_collections(
     request: Request,
     response: Response,
@@ -169,6 +169,7 @@ async def get_all_collections(
     try:
         collection_query = await db.execute(select(collection_model.Collection))
         collections = collection_query.scalars().all()
+        print(f"Fetched {len(collections)} collections from the database")
         collection_list = [
             collection_model.Collection(
                 id=col.id,
@@ -182,13 +183,14 @@ async def get_all_collections(
                 providers=col.providers,
             )
             for col in collections]
+        
         return collection_list
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{str(e)}")
     
 
 @router.get(
-    "/collections/{collection_id}",
+    "/collections/{collectionId}",
     response_model=collection.CollectionModel,
     summary="Get Collection",
     description="""
@@ -236,7 +238,7 @@ async def get_all_collections(
     }
 )
 @cache(expire=86400, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_collection(
     request: Request,
     response : Response,
@@ -249,7 +251,7 @@ async def get_collection(
     Args:
         request: The incoming HTTP request
         response: The outgoing HTTP response
-        collection_id: The ID of the collection to retrieve
+        collectionId: The ID of the collection to retrieve
         db: Database session dependency
         
     Returns:
@@ -261,6 +263,12 @@ async def get_collection(
             - 500: For other errors
     """
     try:
+        if not collectionId:
+            raise HTTPException(status_code=404, detail="Collection ID cannot be empty")
+        if collectionId not in COLLECTIONS:  
+            print(f"Invalid collection ID: {collectionId}")                
+            raise HTTPException(status_code=404, detail="Invalid satellite")
+        
         collection_query = await db.execute(select(collection_model.Collection).where(collection_model.Collection.id==collectionId))
         collections = collection_query.scalars().all()
         collection_list = [
@@ -277,5 +285,7 @@ async def get_collection(
             )
             for col in collections]
         return collection_list
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{str(e)}")

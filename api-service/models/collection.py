@@ -19,8 +19,8 @@ class Collection(Base):
         __table_args__: Additional table arguments, such as schema.
         
     """
-    __tablename__ = 'collections'
-    __table_args__ = {'schema': 'piersight_stac'}
+    __tablename__ = 'collection'
+    __table_args__ = {'schema': 'stac_metadata'}
     
     id = Column(String, primary_key=True, index=True)
     type = Column(String, nullable=False, default='collection')

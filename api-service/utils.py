@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Third-Party Imports
 from fastapi import HTTPException
-from shapely import wkb, to_geojson
+from shapely import wkb, wkt, to_geojson
 import pandas as pd
 import geopandas as gpd
 
@@ -42,11 +42,9 @@ def extract_geometry_coords(geometry_data):
     Returns:
         The coordinates extracted from the geometry.
     """
-    geom = wkb.loads(bytes.fromhex(geometry_data))
-    stac_geojson_str = to_geojson(geom, indent=2)
-    stac_geojson = json.loads(stac_geojson_str)
-    geom_coords = stac_geojson["coordinates"]
-    return geom_coords
+    coords = list(geometry_data.exterior.coords)
+    return coords
+
 
 
 def build_products(stac_obj) -> stac.StacBase:
@@ -78,7 +76,6 @@ def build_products(stac_obj) -> stac.StacBase:
         processor_version=stac_obj["processor_version"],
         satellite_name=stac_obj["satellite_name"],
         polarization=stac_obj["polarization"],
-        processing_time=stac_obj["processing_time"],
         processing_time=stac_obj["processing_time"],
         product_level=stac_obj["product_level"],
         acquisition_start_utc=stac_obj["acquisition_start_utc"],
@@ -163,9 +160,12 @@ def validate_inputs(bbox, start_time, stop_time):
     Raises:
         HTTPException: If any input is invalid.
     """
-    validate_bbox(bbox)
-    validate_time(start_time, field_name="start_time")
-    validate_time(stop_time, field_name="stop_time")
+    if bbox:
+        validate_bbox(bbox)
+    if start_time:
+        validate_time(start_time, field_name="start_time")
+    if stop_time:
+        validate_time(stop_time, field_name="stop_time")
     
 
 def my_key_builder(func, namespace, request=None, response=None, args=(), kwargs=None):

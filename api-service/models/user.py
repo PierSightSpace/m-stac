@@ -30,7 +30,7 @@ class User(Base):
         None
     """
     __tablename__ = 'user'
-    __table_args__ = {'schema': 'piersight_stac'}
+    __table_args__ = {'schema': 'stac_metadata'}
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(EmailType, nullable=False, index=True, unique=True)

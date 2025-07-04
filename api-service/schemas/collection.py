@@ -45,8 +45,8 @@ class Extent(BaseModel):
         form_attribute: Indicates if the model should support form data.
         extra: Controls how extra fields are handled.
     """
-    spatial: dict = None
-    temporal: dict = None
+    spatial: dict = {}
+    temporal: dict = {}
     
     class Config:
         form_attribute = True
@@ -75,9 +75,9 @@ class CollectionModel(BaseModel):
     id: str
     type: str = "collection"
     stac_version: str = "1.0.0"
-    description: str = None
-    license: str = None
-    title: str = None
+    description: str = ""
+    license: Optional[str] = None
+    title: str = ""
     extent: Extent = Extent()
     links: List[Links] = []
     providers: Optional[List[Provider]] = []

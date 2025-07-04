@@ -124,10 +124,10 @@ app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
     content={
         "detail": "Rate limit exceeded. Try again later.",
         "type": "RateLimitExceeded",
-        "retry_after": exc.retry_after
+        "retry_after": getattr(exc, "retry_after", None)
     }
 ))
-app.add_middleware(LoggMiddleware)
+# app.add_middleware(LoggMiddleware)
   
 ############################################################################################################
 # API End-Points

@@ -106,7 +106,7 @@ limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
     }
 )
 @cache(expire=3600, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_all_stacs(
     request: Request,
     response : Response,
@@ -183,7 +183,7 @@ async def get_all_stacs(
         collectionId_query += " AND acquisition_start_utc >= :start_time AND acquisition_end_utc <= :stop_time ORDER BY acquisition_start_utc"
         params["start_time"] = start_time
         params["stop_time"] = stop_time
-                
+    
     if limit:
         collectionId_query += " LIMIT :limit"
         params["limit"] = limit
@@ -195,7 +195,7 @@ async def get_all_stacs(
     keys = result.keys()
     rows = result.fetchall()
     data = serialize_rows(rows, keys)
-                    
+
     if not data:
         raise HTTPException(status_code=404, detail="No data found matching the search criteria")
     

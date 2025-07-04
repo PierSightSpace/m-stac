@@ -3,7 +3,14 @@ __pycache__
 venv
 
 models/__pycache__
-
+.pytest_cache
 schemas/__pycache__
+config/__pycache__
+tests/__pycache__
+middleware/__pycache__
+database/__pycache__
+routes/__pycache__
 
 .env
+
+requirements-test.txt

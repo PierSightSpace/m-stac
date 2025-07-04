@@ -100,7 +100,7 @@ limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
     }
 )
 @cache(expire=3600, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_satellite_stac_data(
     request: Request,
     response : Response,
@@ -135,7 +135,13 @@ async def get_satellite_stac_data(
         raise HTTPException(status_code=400, detail="Invalid satellite")
 
     if bbox:
-        bbox = [float(x) for x in bbox.split(",")]
+        bbox_values = bbox.split(",")
+        bbox = []
+        for x in bbox_values:
+            try:
+                bbox.append(float(x))
+            except ValueError:
+                raise HTTPException(status_code=422, detail="Invalid bbox value; must be a float.")
         
     validate_inputs(bbox, start_time, stop_time)
     
@@ -147,7 +153,7 @@ async def get_satellite_stac_data(
             stop_time = convert_to_datetime(stop_time)
     
     
-    collectionId_query = "SELECT * FROM piersight_stac.stac WHERE satellite_name = :collectionId"
+    collectionId_query = "SELECT * FROM stac_metadata.stac WHERE satellite_name = :collectionId"
     params = {
         "collectionId": collectionId
     }
@@ -267,7 +273,7 @@ async def get_satellite_stac_data(
     }
 )
 @cache(expire=3600, key_builder=my_key_builder)
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def get_stac_item(
     request: Request,
     response : Response,
@@ -285,8 +291,9 @@ async def get_stac_item(
     }
     
     result: Result = await db.execute(sql_text(itemId_query), params)
+    keys = result.keys()
     rows = result.fetchall()
-    data = serialize_rows(rows)
+    data = serialize_rows(rows, keys)
         
     if not data:
         raise HTTPException(status_code=404, detail=f"No item: {itemId} found for the satellite: {collectionId}")
@@ -326,7 +333,7 @@ async def get_stac_item(
         }
     }
 )
-@limiter.limit("5/minute")
+@limiter.limit("15/minute")
 async def download_stac_item_zip(
     request: Request,
     response: Response,
